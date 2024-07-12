@@ -3,6 +3,8 @@ import Notification from './components/Notification'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getAnecdotes, voteAnecdote } from './requests'
+import NotificationContext, { NotificationContextProvider } from './NotificationContext'
+import { useContext } from 'react'
 
 const App = () => {
   const result = useQuery({
@@ -18,18 +20,24 @@ const App = () => {
     }
   })
 
+  const handleVote = (anecdote) => {
+    newAnecdoteMutation.mutate(anecdote)
+    notificationDispatch({type: 'SET', payload: {display: true, msg: `you voted for: ${anecdote.content}`}})
+  }
+
+  const [notification, notificationDispatch] = useContext(NotificationContext)
+
   if (result.isLoading) {
     return <div>loading data...</div>
-  } else if(result.isError) {
+  } else if (result.isError) {
     return <div>Anecdote service not available due to problems in server</div>
   }
-  
+
   const anecdotes = result.data
 
   return (
     <div>
       <h3>Anecdote app</h3>
-
       <Notification />
       <AnecdoteForm />
 
@@ -40,7 +48,7 @@ const App = () => {
           </div>
           <div>
             has {anecdote.votes}
-            <button onClick={() => newAnecdoteMutation.mutate(anecdote)}>vote</button>
+            <button onClick={() => handleVote(anecdote)}>vote</button>
           </div>
         </div>
       )}
